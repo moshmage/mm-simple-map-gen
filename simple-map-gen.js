@@ -1,4 +1,3 @@
-var mapMatrix = new Array();
 
 var config = {
   columns: 0,
@@ -7,9 +6,6 @@ var config = {
   usedEscapes: 0
 };
 
-var escapeRoutes = 1;
-var usedEscapes = 0;
-
 var exits = {
   left: 1,
   right: 2,
@@ -17,18 +13,22 @@ var exits = {
   south: 4
 };
 
+/* Return the exit node name in position <index> */
 function getExitName(index) {
   return Object.keys(exits)[index];
 }
 
+/* get a random exit node code */
 function getRandomExit() {
   return exits[getExitName(Math.floor(Math.random() * (exits.length - 1)))];
 }
 
+/* return true if random number from 0 to 10 is >= 5 */
 function passFail() {
   return Math.floor(Math.random() * 10) >= 5;
 }
 
+/* return true if no constraint */
 function basicRulesPass(exit, row, column) {
 
   if (exit === exits.left && column === 0) return false;
@@ -47,6 +47,7 @@ function basicRulesPass(exit, row, column) {
   return true;
 }
 
+/* returns true if node can be an exit */
 function canBeExit(exit, row, column) {
 
   if (exit === exits.north || exit === exits.right || exit === exits.south) {
@@ -56,8 +57,26 @@ function canBeExit(exit, row, column) {
   return false;
 }
 
+/* setup the map matrix array
+ * if no params are given, default is 3x3
+ * if only rows are given, columns will have the same value
+ * @param rows {Int}        - maximum number of rows
+ * @param columns {Int}     - maximum number of columns
+ * @return Array            - Array of Objects {name: 'string', code: int}
+ */
 function setupMatrix(rows, columns) {
   var i = 0, z = 0, y = 0, canGo = [], pass = false, exit;
+  var mapMatrix = [];
+
+  if (!rows) {
+    rows = 3;
+    columns = 3;
+  }
+
+  if (rows && !columns) {
+    columns = rows;
+  }
+
   config.rows = rows - 1;
   config.columns = columns - 1;
 
@@ -70,7 +89,6 @@ function setupMatrix(rows, columns) {
         if (!pass && passFail()) {
           if (config.usedEscapes < config.maxEscapeRoutes) {
             pass = canBeExit(exits[getExitName(y)], z, i) || (z === config.rows && i === config.columns);
-            console.log('pass '+ pass + ' ' + z + ' ' + i + ' ' + getExitName(y));
             if (pass) {
               config.usedEscapes++;
             }
@@ -87,16 +105,8 @@ function setupMatrix(rows, columns) {
       mapMatrix[z].push(canGo);
     }
   }
+
+  return mapMatrix;
 };
 
-setupMatrix(3, 3);
-
-console.log('------------------------------------------------------------------')
-mapMatrix.forEach(function(array){
-  console.log(array.map(function(ele){
-    return ele.map(function(direction){
-      return direction.name;
-    });
-  }).join(' | '));
-  console.log('------------------------------------------------------------------')
-});
+module.exports = setupMatrix;
