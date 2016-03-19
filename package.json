@@ -1,0 +1,6 @@
+{
+  "name": "mm-simple-map-gen",
+  "version": "0.0.1",
+  "description": "Creates a Map Matrix",
+  "main": "simple-map-gen.js"
+}
