@@ -1,3 +1,4 @@
+'use strict';
 
 var config = {
   columns: 0,
@@ -18,7 +19,7 @@ var exitReverse = {
   nort: 'south',
   east: 'west',
   south: 'north'
-}
+};
 
 /* Return the exit node name in position <index> */
 function getExitNameByIndex(index) {
@@ -38,7 +39,7 @@ function getExitNameByCode(code) {
 
 /* isReverseDirection */
 function isReverseDirection(blockExitCode, testExitName) {
-  console.log('testExitName ' + testExitName + ' blockExitCode ' + blockExitCode)
+  console.log('testExitName ' + testExitName + ' blockExitCode ' + blockExitCode);
   return exitReverse[getExitNameByCode(blockExitCode)] === exitReverse[testExitName];
 }
 
@@ -49,22 +50,36 @@ function getRandomExit() {
 
 /* return true if random number from 0 to 10 is >= 5 */
 function passFail() {
-  return Math.floor(Math.random() * 10) >= 5;
+  var max = 1000, min, value;
+  value = Math.floor(Math.random() * max)
+  min = max - Math.floor(Math.random() * max);
+  return value > min;
 }
 
 /* return true if no constraint */
 function basicRulesPass(exit, row, column) {
-  if (exit === exits.west && column === 0) return false;
-  if (exit === exits.north && row === 0) return false;
-  if (exit === exits.east && column === config.columns) return false;
-  if (exit === exits.south && row === config.rows) return false;
+  var randomExitAllowed;
+  if (exit === exits.west && column === 0) {
+    return false;
+  }
+  if (exit === exits.north && row === 0) {
+    return false;
+  }
+  if (exit === exits.east && column === config.columns) {
+    return false;
+  }
+  if (exit === exits.south && row === config.rows) {
+    return false;
+  }
 
   /* If it didn't return until now, we are probably on the middle
    * but we'll still make sure of that and then return passFail()
    * so we can make some randomness on the middle blocks */
   if (row > 0 && row < config.rows &&
       column > 0 && column < config.columns) {
-    return passFail();
+    randomExitAllowed = passFail();
+    // console.log('passFail', randomExitAllowed)
+    return randomExitAllowed;
   }
 
   return true;
@@ -74,28 +89,36 @@ function basicRulesPass(exit, row, column) {
 function canBeExit(exit, row, column) {
 
   if (exit === exits.north || exit === exits.right || exit === exits.south) {
-    if (column === config.columns || column === Math.ceil((config.columns / 2 ) + 1 )) return true;
+    if (column === config.columns || column === Math.ceil((config.columns / 2) + 1)) {
+      return true;
+    }
   }
 
   return false;
 }
 
 function convertToWaybackCode(exitCode, direction) {
-  var codeBreak = exitCode.split(':');
-  var row = codeBreak[0], column = codeBreak[1];
+  var codeBreak = exitCode.split(':'), row = codeBreak[0], column = codeBreak[1];
 
-  if (row == 0 && direction === exits.north) return config.rows + ':' + column;
-  if (row == config.rows && direction === exits.south) return 0 + ':' + column;
+  if (row == 0 && direction === exits.north) {
+    return config.rows + ':' + column;
+  }
+  if (row == config.rows && direction === exits.south) {
+    return '0:' + column;
+  }
 
-  if (column == 0 && direction === exits.west) return row + ':' + config.columns;
-  if (column == config.columns && direction === exits.east) return row + ':' + 0;
+  if (column == 0 && direction === exits.west) {
+    return row + ':' + config.columns;
+  }
+  if (column == config.columns && direction === exits.east) {
+    return row + ':0';
+  }
 
   return;
 }
 
 function isWayBack(row, column, exit, level, levelBox) {
-  var exitCode = row + ':' + column;
-  var escapeNode = levelBox[level] && levelBox[level].escapeNode;
+  var exitCode = row + ':' + column, escapeNode = levelBox[level] && levelBox[level].escapeNode;
   if (escapeNode && escapeNode.code && escapeNode.exit) {
     if (convertToWaybackCode(escapeNode.code, escapeNode.exit) === exitCode) {
       return isReverseDirection(escapeNode.exit, exit);
@@ -114,8 +137,7 @@ function isWayBack(row, column, exit, level, levelBox) {
  * @return Array            - Array of Objects {level: [...], escapeNode: {...}}
  */
 function setupMatrix(rows, columns, levels) {
-  var i = 0, z = 0, y = 0, l = 0, levelBox = [], columnBox = [], pass = false, exit, escapeNode = {};
-  var rowBox = [];
+  var i = 0, z = 0, y = 0, l = 0, levelBox = [], columnBox = [], pass = false, escapeNode = {}, rowBox = [];
 
   if (!rows) {
     rows = 3;
@@ -134,16 +156,16 @@ function setupMatrix(rows, columns, levels) {
   config.columns = columns - 1;
 
   for (l = 1; l <= levels; l++) {
-    levelBox[l] = {};
+    levelBox[l-1] = {};
     config.usedEscapes = 0;
     for (z = 0; z <= config.rows; z++) {
       rowBox[z] = [];
       for (i = 0; i <= config.columns; i++) {
         columnBox = [];
         for (y = Object.keys(exits).length - 1; y >= 0; y--) {
-          pass = basicRulesPass(exits[getExitNameByIndex(y)], z, i) || isWayBack(z, i , getExitNameByIndex(y), l-1, levelBox);
-          console.log('isWayback ' + isWayBack(z, i , getExitNameByIndex(y), l-1, levelBox));
-          console.log('isWayback ' + z + ':' + i + ' level: ' + l + ' pass: ' + pass + ' exit: ' + getExitNameByIndex(y));
+          pass = basicRulesPass(exits[getExitNameByIndex(y)], z, i) || false;
+          // console.log('isWayback ' + isWayBack(z, i, getExitNameByIndex(y), l - 1, levelBox));
+          // console.log('isWayback ' + z + ':' + i + ' level: ' + l + ' pass: ' + pass + ' exit: ' + getExitNameByIndex(y));
           if (!pass && passFail()) {
             if (config.usedEscapes < config.maxEscapeRoutes) {
               pass = canBeExit(exits[getExitNameByIndex(y)], z, i) || (z === config.rows && i === config.columns);
@@ -157,7 +179,7 @@ function setupMatrix(rows, columns, levels) {
 
           if (pass) {
             columnBox.push({
-              name:getExitNameByIndex(y),
+              name: getExitNameByIndex(y),
               code: y
             });
           }
@@ -165,19 +187,11 @@ function setupMatrix(rows, columns, levels) {
         rowBox[z].push(columnBox);
       }
     }
-    levelBox[l].level = rowBox;
-    levelBox[l].escapeNode = escapeNode;
+    levelBox[l-1].level = rowBox;
+    levelBox[l-1].escapeNode = escapeNode;
   }
 
   return levelBox;
-};
-
-/*
-if (config.waybackCount < levels) {
-  if (mapMatrix[z-1] && mapMatrix[z-1].exitNode === z + ':' + i) {
-
-  }
 }
-*/
 
 module.exports = setupMatrix;
