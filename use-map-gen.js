@@ -1,4 +1,4 @@
-var mapMatrix = require('./map-matrix.js');
+var mapMatrix = require('./simple-map-gen.js');
 var mapLevelMatrix = [];
 var config = {
   rows: 3,
