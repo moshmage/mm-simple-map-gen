@@ -14,6 +14,21 @@ var exits = {
   south: 4
 };
 
+var exitValues = {
+  west: {
+    col: -1
+  },
+  east: {
+    col: 1
+  },
+  north: {
+    row: -1
+  },
+  south: {
+    row: 1
+  }
+}
+
 var exitReverse = {
   west: 'east',
   nort: 'south',
@@ -21,9 +36,24 @@ var exitReverse = {
   south: 'north'
 };
 
+function getExitValue(direction) {
+
+}
+
 /* Return the exit node name in position <index> */
 function getExitNameByIndex(index) {
   return Object.keys(exits)[index];
+}
+
+function getExitCodeByName(name) {
+  var found = false;
+  Object.keys(exits).some(function (key, index) {
+    if (key === name) {
+      found = index + 1;
+      return true;
+    }
+  });
+  return found;
 }
 
 function getExitNameByCode(code) {
@@ -164,8 +194,6 @@ function setupMatrix(rows, columns, levels) {
         columnBox = [];
         for (y = Object.keys(exits).length - 1; y >= 0; y--) {
           pass = basicRulesPass(exits[getExitNameByIndex(y)], z, i) || false;
-          // console.log('isWayback ' + isWayBack(z, i, getExitNameByIndex(y), l - 1, levelBox));
-          // console.log('isWayback ' + z + ':' + i + ' level: ' + l + ' pass: ' + pass + ' exit: ' + getExitNameByIndex(y));
           if (!pass && passFail()) {
             if (config.usedEscapes < config.maxEscapeRoutes) {
               pass = canBeExit(exits[getExitNameByIndex(y)], z, i) || (z === config.rows && i === config.columns);
@@ -194,4 +222,8 @@ function setupMatrix(rows, columns, levels) {
   return levelBox;
 }
 
-module.exports = setupMatrix;
+module.exports = {
+  setupMatrix: setupMatrix,
+  getExitCodeByName: getExitCodeByName,
+  mapExitsValue: exitValues
+}
